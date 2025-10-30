@@ -109,6 +109,9 @@ const initialMatches: Omit<Match, 'location' | 'opponent' | 'id'>[] = [
 ];
 
 const EMPTY_STATS: PlayerStats = { goals: 0, yellowCards: 0, redCards: 0, minutesPlayed: 0 };
+const BIRTH_YEARS = ['2009', '2008', '2007', '2006', '2005'];
+const ROLES = ['Portiere', 'Terzino Sx', 'Terzino Dx', 'Dif.Centrale', 'Centr. C', 'Ala', 'Attaccante'];
+
 
 // --- APP COMPONENT ---
 const App = () => {
@@ -496,11 +499,17 @@ Calzettoni blu`.trim();
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="role">Ruolo</label>
-                                    <input type="text" id="role" placeholder="Es. Attaccante" value={newPlayer.role} onChange={e => setNewPlayer({...newPlayer, role: e.target.value})} />
+                                    <select id="role" value={newPlayer.role} onChange={e => setNewPlayer({...newPlayer, role: e.target.value})}>
+                                        <option value="">Seleziona ruolo</option>
+                                        {ROLES.map(role => <option key={role} value={role}>{role}</option>)}
+                                    </select>
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="birthYear">Anno di Nascita</label>
-                                    <input type="text" id="birthYear" placeholder="Es. 2008" value={newPlayer.birthYear} onChange={e => setNewPlayer({...newPlayer, birthYear: e.target.value})} />
+                                    <select id="birthYear" value={newPlayer.birthYear} onChange={e => setNewPlayer({...newPlayer, birthYear: e.target.value})}>
+                                        <option value="">Seleziona anno</option>
+                                        {BIRTH_YEARS.map(year => <option key={year} value={year}>{year}</option>)}
+                                    </select>
                                 </div>
                                 <button type="submit">Aggiungi Giocatore</button>
                             </div>
@@ -522,8 +531,12 @@ Calzettoni blu`.trim();
                                         <form className="edit-form" onSubmit={handleUpdatePlayerSubmit}>
                                             <div className="form-grid">
                                                 <input type="text" value={editingPlayer.name} onChange={e => setEditingPlayer({...editingPlayer, name: e.target.value})} />
-                                                <input type="text" value={editingPlayer.role} onChange={e => setEditingPlayer({...editingPlayer, role: e.target.value})} />
-                                                <input type="text" value={editingPlayer.birthYear} onChange={e => setEditingPlayer({...editingPlayer, birthYear: e.target.value})} />
+                                                <select value={editingPlayer.role} onChange={e => setEditingPlayer({...editingPlayer, role: e.target.value})}>
+                                                    {ROLES.map(role => <option key={role} value={role}>{role}</option>)}
+                                                </select>
+                                                <select value={editingPlayer.birthYear} onChange={e => setEditingPlayer({...editingPlayer, birthYear: e.target.value})}>
+                                                    {BIRTH_YEARS.map(year => <option key={year} value={year}>{year}</option>)}
+                                                </select>
                                             </div>
                                             <div className="actions">
                                                 <button type="submit">Salva</button>
@@ -562,8 +575,16 @@ Calzettoni blu`.trim();
                                             {editingPlayer && editingPlayer.id === p.id ? (
                                                 <>
                                                     <td><input type="text" value={editingPlayer.name} onChange={e => setEditingPlayer({...editingPlayer, name: e.target.value})} /></td>
-                                                    <td><input type="text" value={editingPlayer.role} onChange={e => setEditingPlayer({...editingPlayer, role: e.target.value})} /></td>
-                                                    <td><input type="text" value={editingPlayer.birthYear} onChange={e => setEditingPlayer({...editingPlayer, birthYear: e.target.value})} /></td>
+                                                    <td>
+                                                        <select value={editingPlayer.role} onChange={e => setEditingPlayer({...editingPlayer, role: e.target.value})}>
+                                                            {ROLES.map(role => <option key={role} value={role}>{role}</option>)}
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <select value={editingPlayer.birthYear} onChange={e => setEditingPlayer({...editingPlayer, birthYear: e.target.value})}>
+                                                            {BIRTH_YEARS.map(year => <option key={year} value={year}>{year}</option>)}
+                                                        </select>
+                                                    </td>
                                                     <td>
                                                         <div className="actions">
                                                             <button onClick={performUpdatePlayer}>Salva</button>
