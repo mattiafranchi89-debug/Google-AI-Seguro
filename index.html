@@ -126,7 +126,20 @@
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
       margin-bottom: 1.5rem;
+      align-items: end;
     }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group label {
+        margin-bottom: 0.3rem;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
 
     input, select {
       width: 100%;
@@ -160,12 +173,26 @@
     button.danger {
         background-color: var(--absent-color);
     }
+    button.secondary {
+        background-color: #6c757d;
+    }
 
-    h2 {
+    h2, h3 {
         color: var(--primary-color);
         border-bottom: 2px solid var(--background-color);
         padding-bottom: 0.5rem;
         margin-top: 0;
+    }
+    
+    h3 {
+        margin-top: 2rem;
+        font-size: 1.3rem;
+    }
+    
+    hr {
+        border: none;
+        border-top: 1px solid var(--background-color);
+        margin: 2rem 0;
     }
 
     .player-card {
@@ -186,159 +213,30 @@
         gap: 1rem;
     }
 
-    .player-card h3 {
+    .player-card h4 {
         margin-top: 0;
         color: var(--primary-color);
+        font-size: 1.2rem;
     }
 
     .player-card p {
         margin: 0.3rem 0;
     }
     
-    .player-card .stats-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-        margin-top: 1rem;
-        font-size: 0.9rem;
-    }
-    .player-card .stats-grid span {
-        font-weight: bold;
-        color: var(--primary-color);
-    }
-    
     .player-card .actions {
         margin-top: 1rem;
         align-self: flex-end;
-    }
-
-    .attendance-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      overflow-x: auto;
-      display: block;
-    }
-
-    .attendance-table th, .attendance-table td {
-      border: 1px solid var(--border-color);
-      padding: 0.8rem;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    .attendance-table th {
-      background-color: var(--background-color);
-    }
-
-    .attendance-table .status-buttons {
         display: flex;
         gap: 0.5rem;
     }
-
-    .attendance-table .status-buttons button {
-        flex: 1;
-        padding: 0.5rem;
-        font-size: 0.8rem;
-        min-width: 30px;
-    }
-
-    .status-buttons .present { background-color: var(--present-color); }
-    .status-buttons .absent { background-color: var(--absent-color); }
-    .status-buttons .justified { background-color: var(--justified-color); }
-
-    .status-buttons .selected {
-        box-shadow: 0 0 0 3px var(--primary-color) inset;
-    }
     
-    .convocations-grid {
-        display: grid;
-        grid-template-columns: 1fr 2fr;
-        gap: 2rem;
-    }
-    
-    @media (max-width: 768px) {
-        .convocations-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .player-list-convocation {
-        max-height: 400px;
-        overflow-y: auto;
-        border: 1px solid var(--border-color);
-        padding: 1rem;
-        border-radius: 4px;
-    }
-    
-    .player-list-convocation label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    }
-    
-    .player-list-convocation label:hover {
-        background-color: var(--background-color);
-    }
-    
-    .match-details {
-        background-color: var(--background-color);
-        padding: 1rem;
-        border-radius: 8px;
-    }
-    
-    .match-details p {
-      margin: 0.5rem 0;
-    }
-
-    .stats-grid-input {
-        display: grid;
-        grid-template-columns: minmax(120px, 2fr) repeat(4, minmax(60px, 1fr));
-        gap: 1rem;
-        align-items: center;
-        overflow-x: auto;
-    }
-    
-    .stats-grid-input .header {
-        font-weight: bold;
-    }
-
-    .stats-grid-input div {
-        padding: 0.5rem 0;
-    }
-    .stats-grid-input input {
-        padding: 0.5rem;
+    .player-card .actions button {
+        padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
     }
 
-    .calendar-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      overflow-x: auto;
-      display: block;
-    }
-
-    .calendar-table th, .calendar-table td {
-      border: 1px solid var(--border-color);
-      padding: 0.6rem;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    .calendar-table th {
-      background-color: var(--primary-color);
-      color: var(--secondary-color);
-    }
-
-    .calendar-table tr.highlight-team {
-      background-color: var(--highlight-color);
-      font-weight: bold;
+    .edit-form .form-grid {
+        margin-bottom: 1rem;
     }
 
     .info-message {
@@ -353,18 +251,264 @@
       margin-bottom: 1.5rem;
     }
 
-    /* Partite Widgets */
+    /* Player View Controls */
+    .view-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .view-header h3 {
+        margin: 0;
+        border: none;
+    }
+
+    .view-toggle button {
+        background: none;
+        border: 1px solid var(--border-color);
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+
+    .view-toggle button.active {
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+    .view-toggle button:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    .view-toggle button:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border-left: none;
+    }
+
+    /* Player List Table */
+    .player-list-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .player-list-table th, .player-list-table td {
+        border: 1px solid var(--border-color);
+        padding: 0.8rem;
+        text-align: left;
+        vertical-align: middle;
+    }
+    .player-list-table th {
+        background-color: var(--background-color);
+        font-weight: bold;
+    }
+    .player-list-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .player-list-table .actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-start;
+    }
+    .player-list-table .actions button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Campionato Widgets */
+    .sub-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      background-color: var(--background-color);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .sub-nav button {
+        background: none;
+        color: var(--primary-color);
+        font-weight: normal;
+        border-radius: 6px;
+        margin: 0.25rem;
+    }
+    .sub-nav button.active {
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+
     .widget-container {
         display: flex;
         justify-content: center;
         align-items: center;
+        padding: 1rem;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
     }
 
     .widget-container iframe {
         width: 100%;
         max-width: 500px;
         border: none;
+        /* Height will be set dynamically */
     }
+    
+    /* Allenamenti */
+    .trainings-list {
+        list-style: none;
+        padding: 0;
+    }
+    .trainings-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .trainings-list li.active {
+        background-color: var(--highlight-color);
+        border-color: var(--accent-color);
+    }
+    .trainings-list li:hover {
+        background-color: var(--background-color);
+    }
+    .attendance-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.8rem;
+        align-items: center;
+        margin-top: 1.5rem;
+    }
+    .attendance-player-name {
+        font-weight: 500;
+    }
+    .attendance-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .attendance-controls button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+        opacity: 0.7;
+        border: 2px solid transparent;
+    }
+    .attendance-controls button.present { background-color: var(--present-color); }
+    .attendance-controls button.absent { background-color: var(--absent-color); }
+    .attendance-controls button.justified { background-color: var(--justified-color); }
+    
+    .attendance-controls button.selected {
+        opacity: 1;
+        font-weight: bold;
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+
+    .summary-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid var(--background-color);
+    }
+
+    .summary-section .form-grid {
+        grid-template-columns: 1fr auto;
+        max-width: 450px;
+    }
+
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .summary-table th, .summary-table td {
+        border: 1px solid var(--border-color);
+        padding: 0.8rem;
+        text-align: left;
+    }
+    .summary-table th {
+        background-color: var(--background-color);
+    }
+    .summary-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    /* Convocazioni */
+    .squad-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 1.5rem;
+    }
+
+    .squad-player-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .squad-player-item:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .squad-player-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .squad-player-info .player-name {
+        font-weight: bold;
+    }
+
+    .squad-player-info .player-details {
+        font-size: 0.9em;
+        color: #555;
+    }
+
+    .squad-player-item .squad-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .whatsapp-generator {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid var(--background-color);
+    }
+
+    .whatsapp-message-container {
+        margin-top: 1rem;
+    }
+
+    .whatsapp-message-container textarea {
+        width: 100%;
+        min-height: 300px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: #f9f9f9;
+        white-space: pre-wrap; /* Use pre-wrap for better line breaking */
+        box-sizing: border-box;
+        color: var(--text-color); /* Ensure text is black */
+    }
+
+    .copy-container {
+        margin-top: 0.5rem;
+        text-align: right;
+    }
+
 
     /* AI Assistant */
     .ai-assistant {
@@ -428,21 +572,6 @@
         flex-grow: 1;
     }
     
-    .prompt-suggestions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .prompt-suggestions button {
-        background-color: #e2e3e5;
-        color: var(--primary-color);
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-        border: 1px solid var(--border-color);
-    }
-    
     .grounding-links {
       margin-top: 0.5rem;
       font-size: 0.8rem;
@@ -460,6 +589,83 @@
     .grounding-links a:hover {
       text-decoration: underline;
     }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .stats-table th, .stats-table td {
+        border: 1px solid var(--border-color);
+        padding: 0.8rem;
+        text-align: left;
+        vertical-align: middle;
+    }
+    .stats-table th {
+        background-color: var(--background-color);
+    }
+    .stats-table.sortable th button {
+        background: none;
+        border: none;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        text-align: left;
+        padding: 0;
+        width: 100%;
+        font-weight: bold;
+    }
+    .stats-table.sortable th button:hover {
+        color: var(--accent-color);
+    }
+    
+    .stats-table input[type="number"] {
+        width: 60px;
+        padding: 0.3rem;
+        text-align: center;
+    }
+    
+    .stats-table .actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .stats-table .actions button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Stats View Toggle */
+    .stats-view-toggle {
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .stats-view-toggle button {
+        background: none;
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        color: var(--primary-color);
+    }
+
+    .stats-view-toggle button.active {
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+    .stats-view-toggle button:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    .stats-view-toggle button:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border-left: none;
+    }
+
 
   </style>
 <script type="importmap">
