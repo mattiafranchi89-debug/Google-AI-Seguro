@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seguro Calcio Manager</title>
+  
+  <!-- Firebase SDKs (v9 modular) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
   <script type="module" src="index.tsx"></script>
   <style>
     :root {
@@ -33,6 +39,15 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 1rem;
+    }
+    
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-size: 1.5rem;
+        color: var(--primary-color);
     }
 
     header {
@@ -132,8 +147,13 @@
       font-size: 1rem;
       transition: background-color 0.3s ease;
     }
+    
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
 
-    button:hover {
+    button:hover:not(:disabled) {
       opacity: 0.9;
     }
     
@@ -186,6 +206,11 @@
         font-weight: bold;
         color: var(--primary-color);
     }
+    
+    .player-card .actions {
+        margin-top: 1rem;
+        align-self: flex-end;
+    }
 
     .attendance-table {
       width: 100%;
@@ -215,6 +240,7 @@
         flex: 1;
         padding: 0.5rem;
         font-size: 0.8rem;
+        min-width: 30px;
     }
 
     .status-buttons .present { background-color: var(--present-color); }
@@ -222,8 +248,7 @@
     .status-buttons .justified { background-color: var(--justified-color); }
 
     .status-buttons .selected {
-        box-shadow: 0 0 0 2px var(--primary-color);
-        opacity: 1;
+        box-shadow: 0 0 0 3px var(--primary-color) inset;
     }
     
     .convocations-grid {
@@ -253,6 +278,7 @@
         padding: 0.5rem;
         cursor: pointer;
         border-radius: 4px;
+        transition: background-color 0.2s;
     }
     
     .player-list-convocation label:hover {
@@ -411,6 +437,13 @@
     .chat-message.loading {
       font-style: italic;
       color: #777;
+    }
+    
+    .chat-message.error {
+        background-color: #ffdddd;
+        color: var(--absent-color);
+        align-self: flex-start;
+        border-bottom-left-radius: 3px;
     }
 
     .chat-input-form {
