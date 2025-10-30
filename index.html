@@ -354,46 +354,15 @@
     }
 
     /* Partite Widgets */
-    .widgets-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-top: 1rem;
-    }
-
-    .widget-card {
-        background-color: #fff;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 1px 3px var(--shadow-color);
-        text-align: center;
-    }
-
-    .widget-card iframe {
-        width: 100%;
-        max-width: 500px;
-        height: 350px;
-        border: none;
-    }
-
-    @media (max-width: 900px) {
-        .widgets-container {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    /* Classifica Widget */
-    .classifica-container {
+    .widget-container {
         display: flex;
         justify-content: center;
         align-items: center;
     }
 
-    .classifica-container iframe {
+    .widget-container iframe {
         width: 100%;
         max-width: 500px;
-        height: 800px;
         border: none;
     }
 
