@@ -1,4 +1,3 @@
-// Fix: Removed content from package.json and file separators that were erroneously included in this file.
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
