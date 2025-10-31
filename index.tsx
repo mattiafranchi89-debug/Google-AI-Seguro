@@ -123,6 +123,8 @@ const App = () => {
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userInput, setUserInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
     // Player Management State
     const [newPlayer, setNewPlayer] = useState({ name: '', role: '', birthYear: '' });
@@ -135,6 +137,7 @@ const App = () => {
     const [trainingAttendance, setTrainingAttendance] = useState<TrainingAttendance>({});
     const [selectedTrainingId, setSelectedTrainingId] = useState<string | null>(null);
     const [selectedSummaryMonth, setSelectedSummaryMonth] = useState<string>('');
+    const [trainingToDelete, setTrainingToDelete] = useState<string | null>(null);
 
     // Convocazioni State
     const [selectedMatchForSquad, setSelectedMatchForSquad] = useState<string>('');
@@ -192,6 +195,105 @@ const App = () => {
         setSortConfig({ key: 'minutesPlayed', direction: 'descending' }); // Reset sort on view change
     }, [statsView]);
 
+    // --- CSV IMPORT HANDLERS ---
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setCsvFile(e.target.files[0]);
+        } else {
+            setCsvFile(null);
+        }
+    };
+
+    const handleImportCSV = () => {
+        if (!csvFile) {
+            alert("Per favore, seleziona un file CSV.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const text = event.target?.result as string;
+                const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
+
+                if (rows.length < 2) {
+                    alert("Il file CSV è vuoto o contiene solo l'intestazione.");
+                    return;
+                }
+
+                const header = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                const nomeIndex = header.indexOf('nome');
+                const cognomeIndex = header.indexOf('cognome');
+                const ruoloIndex = header.indexOf('ruolo');
+                const annoIndex = header.indexOf('anno di nascita');
+
+                if (nomeIndex === -1 || cognomeIndex === -1 || ruoloIndex === -1 || annoIndex === -1) {
+                    alert("L'intestazione del CSV non è valida. Assicurati che contenga le colonne: nome, cognome, Ruolo, anno di nascita.");
+                    return;
+                }
+
+                const newPlayers: Player[] = [];
+                let skippedCount = 0;
+                let duplicateCount = 0;
+
+                for (let i = 1; i < rows.length; i++) {
+                    const data = rows[i].split(',').map(d => d.trim().replace(/"/g, ''));
+
+                    if (data.length <= Math.max(nomeIndex, cognomeIndex, ruoloIndex, annoIndex)) {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    const name = `${data[nomeIndex]} ${data[cognomeIndex]}`.trim();
+                    const roleRaw = data[ruoloIndex];
+                    const birthYear = data[annoIndex];
+
+                    const canonicalRole = ROLES.find(r => r.toLowerCase() === roleRaw?.toLowerCase());
+                    const isValidYear = BIRTH_YEARS.includes(birthYear);
+                    const playerExists = players.some(p => p.name.toLowerCase() === name.toLowerCase() && p.birthYear === birthYear);
+                    
+                    if (!name || !canonicalRole || !birthYear || !isValidYear) {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    if (playerExists) {
+                        duplicateCount++;
+                        continue;
+                    }
+
+                    newPlayers.push({
+                        id: `p${Date.now()}_${i}`,
+                        name,
+                        role: canonicalRole,
+                        birthYear,
+                    });
+                }
+                
+                if (newPlayers.length > 0) {
+                     setPlayers(prev => [...prev, ...newPlayers].sort((a,b) => a.name.localeCompare(b.name)));
+                }
+               
+                alert(`Importazione completata!\n- ${newPlayers.length} giocatori importati.\n- ${skippedCount} righe saltate (dati mancanti, non validi o formattazione errata).\n- ${duplicateCount} duplicati ignorati.`);
+                
+                setCsvFile(null);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                }
+            } catch (error) {
+                alert("Si è verificato un errore durante la lettura del file. Assicurati che sia un file di testo CSV valido.");
+                console.error("CSV Import Error:", error);
+            }
+        };
+
+        reader.onerror = () => {
+             alert("Impossibile leggere il file.");
+        };
+
+        reader.readAsText(csvFile);
+    };
+
+
     // --- PLAYER CRUD HANDLERS ---
     const handleAddPlayer = (e: FormEvent) => {
         e.preventDefault();
@@ -212,6 +314,12 @@ const App = () => {
 
     const performUpdatePlayer = () => {
         if (!editingPlayer) return;
+
+        if (!editingPlayer.name.trim()) {
+            alert("Il nome del giocatore non può essere vuoto.");
+            return;
+        }
+
         setPlayers(prev => prev.map(p => p.id === editingPlayer.id ? editingPlayer : p));
         setEditingPlayer(null);
     };
@@ -244,6 +352,20 @@ const App = () => {
         }));
     };
     
+    const handleConfirmDeleteTraining = () => {
+        if (!trainingToDelete) return;
+        setTrainingSessions(prev => prev.filter(s => s.id !== trainingToDelete));
+        setTrainingAttendance(prev => {
+            const newAttendance = { ...prev };
+            delete newAttendance[trainingToDelete];
+            return newAttendance;
+        });
+        if (selectedTrainingId === trainingToDelete) {
+            setSelectedTrainingId(null);
+        }
+        setTrainingToDelete(null); // Close the dialog
+    };
+
     // --- SQUAD SELECTION & WHATSAPP HANDLERS ---
     const handleToggleSquadSelection = (matchId: string, playerId: string) => {
         setSquadSelections(prev => {
@@ -515,6 +637,25 @@ Calzettoni blu`.trim();
                             </div>
                         </form>
                         <hr/>
+                        <div className="import-section">
+                            <h3>Importa da CSV</h3>
+                            <p>Carica un file CSV con le colonne: <strong>nome, cognome, Ruolo, anno di nascita</strong>. L'intestazione è obbligatoria.</p>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label htmlFor="csv-import">Seleziona File CSV</label>
+                                    <input 
+                                        type="file" 
+                                        id="csv-import" 
+                                        accept=".csv,text/csv" 
+                                        onChange={handleFileChange} 
+                                        ref={fileInputRef}
+                                    />
+                                </div>
+                                <button type="button" onClick={handleImportCSV} disabled={!csvFile}>
+                                    Importa Giocatori
+                                </button>
+                            </div>
+                        </div>
                         <div className="view-header">
                              <h3>Elenco Giocatori</h3>
                              <div className="view-toggle">
@@ -735,8 +876,19 @@ Calzettoni blu`.trim();
                                      className={selectedTrainingId === session.id ? 'active' : ''}
                                      onClick={() => setSelectedTrainingId(session.id)}
                                  >
-                                     <span>{new Date(session.date).toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                     <span>{session.notes}</span>
+                                     <div className="training-item-content">
+                                        <span>{new Date(session.date).toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                        <span>{session.notes}</span>
+                                     </div>
+                                     <button 
+                                         className="danger" 
+                                         onClick={(e) => {
+                                             e.stopPropagation();
+                                             setTrainingToDelete(session.id);
+                                         }}
+                                     >
+                                         Elimina
+                                     </button>
                                  </li>
                              ))}
                          </ul>
@@ -962,6 +1114,11 @@ Calzettoni blu`.trim();
                 );
         }
     };
+
+    const trainingSessionToDelete = useMemo(() => {
+        if (!trainingToDelete) return null;
+        return trainingSessions.find(s => s.id === trainingToDelete);
+    }, [trainingToDelete, trainingSessions]);
     
     return (
         <div className="container">
@@ -982,6 +1139,27 @@ Calzettoni blu`.trim();
                     {renderContent()}
                 </div>
             </main>
+            
+            {trainingToDelete && trainingSessionToDelete && (
+                <div className="modal-overlay" onClick={() => setTrainingToDelete(null)}>
+                    <div className="modal-dialog" onClick={e => e.stopPropagation()}>
+                        <h3>Conferma Eliminazione</h3>
+                        <p>
+                            Sei sicuro di voler eliminare l'allenamento del{' '}
+                            <strong>
+                                {new Date(trainingSessionToDelete.date + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </strong>
+                            ?
+                            <br/>
+                            L'azione è irreversibile e cancellerà anche le presenze associate.
+                        </p>
+                        <div className="modal-actions">
+                            <button className="secondary" onClick={() => setTrainingToDelete(null)}>Annulla</button>
+                            <button className="danger" onClick={handleConfirmDeleteTraining}>Conferma Eliminazione</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

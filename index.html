@@ -247,6 +247,52 @@
         margin: 1rem 0;
     }
 
+    /* Import Section */
+    .import-section {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background-color: var(--background-color);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .import-section h3 {
+        margin-top: 0;
+        border-bottom: none;
+    }
+
+    .import-section p {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .import-section .form-grid {
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+    }
+
+    input[type="file"] {
+        color: var(--primary-color);
+        background-color: white;
+        padding: 0.25rem;
+    }
+    input[type="file"]::file-selector-button {
+        margin-right: 1rem;
+        border: 1px solid var(--primary-color);
+        background: var(--primary-color);
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        color: var(--secondary-color);
+        cursor: pointer;
+        transition: background-color .2s ease-in-out;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+        opacity: 0.9;
+    }
+
     .search-container {
       margin-bottom: 1.5rem;
     }
@@ -373,6 +419,17 @@
         margin-bottom: 0.5rem;
         cursor: pointer;
         transition: background-color 0.2s;
+    }
+    .training-item-content {
+        display: flex;
+        flex-grow: 1;
+        justify-content: space-between;
+        margin-right: 1rem;
+    }
+    .trainings-list li > button.danger {
+        flex-shrink: 0;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
     }
     .trainings-list li.active {
         background-color: var(--highlight-color);
@@ -665,7 +722,57 @@
         border-bottom-right-radius: 4px;
         border-left: none;
     }
+    
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+    }
 
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-dialog {
+        background-color: var(--secondary-color);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(-30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-dialog h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+
+    .modal-dialog p {
+        margin-bottom: 2rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
 
   </style>
 <script type="importmap">
