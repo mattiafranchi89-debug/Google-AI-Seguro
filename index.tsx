@@ -111,6 +111,7 @@ const initialMatches: Omit<Match, 'location' | 'opponent' | 'id'>[] = [
 const EMPTY_STATS: PlayerStats = { goals: 0, yellowCards: 0, redCards: 0, minutesPlayed: 0 };
 const BIRTH_YEARS = ['2009', '2008', '2007', '2006', '2005'];
 const ROLES = ['Portiere', 'Terzino Sx', 'Terzino Dx', 'Dif.Centrale', 'Centr. C', 'Ala', 'Attaccante'];
+const ROLE_ORDER = ['Portiere', 'Terzino Sx', 'Terzino Dx', 'Dif.Centrale', 'Centr. C', 'Ala', 'Attaccante'];
 
 
 // --- APP COMPONENT ---
@@ -370,9 +371,27 @@ const App = () => {
     const handleToggleSquadSelection = (matchId: string, playerId: string) => {
         setSquadSelections(prev => {
             const currentSquad = prev[matchId] || [];
-            const newSquad = currentSquad.includes(playerId)
-                ? currentSquad.filter(id => id !== playerId)
-                : [...currentSquad, playerId];
+            const isSelected = currentSquad.includes(playerId);
+            const playerToAdd = players.find(p => p.id === playerId);
+
+            let newSquad;
+
+            if (isSelected) {
+                newSquad = currentSquad.filter(id => id !== playerId);
+            } else {
+                if (!playerToAdd) return prev; // Player not found
+
+                const totalSelected = currentSquad.length;
+                const fuoriQuotaSelected = currentSquad.filter(pId => {
+                    const p = players.find(player => player.id === pId);
+                    return p && ['2005', '2006'].includes(p.birthYear);
+                }).length;
+
+                if (totalSelected >= 20) return prev; // Max players reached
+                if (['2005', '2006'].includes(playerToAdd.birthYear) && fuoriQuotaSelected >= 4) return prev; // Max "fuori quota" reached
+
+                newSquad = [...currentSquad, playerId];
+            }
             return { ...prev, [matchId]: newSquad };
         });
     };
@@ -381,10 +400,20 @@ const App = () => {
         if (!selectedMatchForSquad) return;
         const match = matches.find(m => m.id === selectedMatchForSquad);
         if (!match) return;
+        
+        const currentSquadIds = squadSelections[selectedMatchForSquad] || [];
 
-        const selectedPlayerNames = players
-            .filter(p => (squadSelections[selectedMatchForSquad] || []).includes(p.id))
-            .map(p => p.name).join('\n');
+        const selectedPlayers = players.filter(p => currentSquadIds.includes(p.id));
+        
+        // Sort selected players by role order for the message
+        const sortedSelectedPlayers = [...selectedPlayers].sort((a, b) => {
+            const roleAIndex = ROLE_ORDER.indexOf(a.role);
+            const roleBIndex = ROLE_ORDER.indexOf(b.role);
+            if (roleAIndex !== roleBIndex) return roleAIndex - roleBIndex;
+            return a.name.localeCompare(b.name);
+        });
+        
+        const selectedPlayerNames = sortedSelectedPlayers.map(p => p.name).join('\n');
         
         if (selectedPlayerNames.length === 0) {
             alert("Nessun giocatore convocato. Selezionane almeno uno.");
@@ -490,7 +519,7 @@ Calzettoni blu`.trim();
         });
     };
     
-    // --- STATS, ATTENDANCE & CSV EXPORT LOGIC ---
+    // --- MEMOIZED DATA & EXPORT LOGIC ---
     const requestSort = (key: keyof PlayerStats | 'name') => {
         let direction: 'ascending' | 'descending' = 'ascending';
         if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -505,6 +534,17 @@ Calzettoni blu`.trim();
         if (!sortConfig || sortConfig.key !== key) return null;
         return sortConfig.direction === 'ascending' ? '▲' : '▼';
     };
+    
+    const sortedPlayersForSquad = useMemo(() => {
+        return [...players].sort((a, b) => {
+            const roleAIndex = ROLE_ORDER.indexOf(a.role);
+            const roleBIndex = ROLE_ORDER.indexOf(b.role);
+            if (roleAIndex !== roleBIndex) {
+                return roleAIndex - roleBIndex;
+            }
+            return a.name.localeCompare(b.name);
+        });
+    }, [players]);
 
     const sortedPlayersForMatchStats = useMemo(() => {
         let sortableItems = players.map(player => ({
@@ -753,7 +793,14 @@ Calzettoni blu`.trim();
                         )}
                     </div>
                 );
-            case 'Convocazioni':
+            case 'Convocazioni': {
+                const currentSquad = squadSelections[selectedMatchForSquad] || [];
+                const totalSelected = currentSquad.length;
+                const fuoriQuotaSelected = currentSquad.filter(playerId => {
+                    const player = players.find(p => p.id === playerId);
+                    return player && ['2005', '2006'].includes(player.birthYear);
+                }).length;
+
                 return (
                     <div>
                         <h2>Convocazioni Partite</h2>
@@ -773,22 +820,38 @@ Calzettoni blu`.trim();
                         {selectedMatchForSquad ? (
                              <>
                                 {players.length > 0 ? (
-                                    <ul className="squad-list">
-                                        {players.map(player => (
-                                            <li key={player.id} className="squad-player-item">
-                                                <div className="squad-player-info">
-                                                    <span className="player-name">{player.name}</span>
-                                                    <span className="player-details">{player.role} - {player.birthYear}</span>
-                                                </div>
-                                                <input
-                                                    type="checkbox"
-                                                    className="squad-checkbox"
-                                                    checked={squadSelections[selectedMatchForSquad]?.includes(player.id) || false}
-                                                    onChange={() => handleToggleSquadSelection(selectedMatchForSquad, player.id)}
-                                                />
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <>
+                                        <div className="squad-summary">
+                                            <span>Convocati: <strong>{totalSelected} / 20</strong></span>
+                                            <span>Fuori Quota (2005/06): <strong>{fuoriQuotaSelected} / 4</strong></span>
+                                        </div>
+                                        <ul className="squad-list">
+                                            {sortedPlayersForSquad.map(player => {
+                                                const isSelected = currentSquad.includes(player.id);
+                                                const isFuoriQuota = ['2005', '2006'].includes(player.birthYear);
+                                                const isDisabled = !isSelected && (
+                                                    totalSelected >= 20 ||
+                                                    (isFuoriQuota && fuoriQuotaSelected >= 4)
+                                                );
+
+                                                return (
+                                                    <li key={player.id} className={`squad-player-item ${isDisabled ? 'disabled' : ''}`}>
+                                                        <div className="squad-player-info">
+                                                            <span className="player-name">{player.name}</span>
+                                                            <span className="player-details">{player.role} - {player.birthYear}</span>
+                                                        </div>
+                                                        <input
+                                                            type="checkbox"
+                                                            className="squad-checkbox"
+                                                            checked={isSelected}
+                                                            onChange={() => handleToggleSquadSelection(selectedMatchForSquad, player.id)}
+                                                            disabled={isDisabled}
+                                                        />
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </>
                                 ) : <p className="info-message">Aggiungi giocatori per creare una convocazione.</p>}
                                 <div className="whatsapp-generator">
                                     <button type="button" onClick={handleGenerateWhatsAppMessage} disabled={!selectedMatchForSquad}>
@@ -811,6 +874,7 @@ Calzettoni blu`.trim();
                         )}
                     </div>
                 );
+            }
             case 'Campionato':
                  return (
                     <div>

@@ -497,6 +497,20 @@
     }
 
     /* Convocazioni */
+    .squad-summary {
+        display: flex;
+        justify-content: space-around;
+        padding: 1rem;
+        background-color: var(--background-color);
+        border-radius: 8px;
+        margin: 1.5rem 0;
+        font-weight: 500;
+    }
+    .squad-summary strong {
+        color: var(--primary-color);
+        font-size: 1.1em;
+    }
+
     .squad-list {
         list-style: none;
         padding: 0;
@@ -511,11 +525,23 @@
         border: 1px solid var(--border-color);
         border-radius: 4px;
         margin-bottom: 0.5rem;
+        transition: opacity 0.3s, background-color 0.3s;
     }
     
     .squad-player-item:nth-child(even) {
         background-color: #f9f9f9;
     }
+    
+    .squad-player-item.disabled {
+        opacity: 0.6;
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+    
+    .squad-player-item.disabled .squad-checkbox {
+        cursor: not-allowed;
+    }
+
 
     .squad-player-info {
         display: flex;
