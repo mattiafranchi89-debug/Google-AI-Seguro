@@ -2,35 +2,6 @@ import React, { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo } f
 import ReactDOM from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
 
-// --- HOOKS ---
-/**
- * A custom hook that syncs state with localStorage.
- * @param key The key to use in localStorage.
- * @param defaultValue The default value if nothing is in localStorage.
- */
-function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-    const [state, setState] = useState(() => {
-        try {
-            const storedValue = localStorage.getItem(key);
-            return storedValue ? JSON.parse(storedValue) : defaultValue;
-        } catch (error) {
-            console.error("Error reading from localStorage", error);
-            return defaultValue;
-        }
-    });
-
-    useEffect(() => {
-        try {
-            localStorage.setItem(key, JSON.stringify(state));
-        } catch (error) {
-            console.error("Error writing to localStorage", error);
-        }
-    }, [key, state]);
-
-    return [state, setState];
-}
-
-
 // --- TYPES ---
 type Player = {
   id: string;
@@ -184,18 +155,11 @@ const App = () => {
     }
     
     const [activeTab, setActiveTab] = useState<ActiveTab>('Giocatori');
-    // --- PERSISTENT STATE ---
-    const [players, setPlayers] = usePersistentState<Player[]>('seguro-players', []);
-    const [matchStats, setMatchStats] = usePersistentState<MatchStats>('seguro-matchStats', {});
-    const [trainingSessions, setTrainingSessions] = usePersistentState<TrainingSession[]>('seguro-trainingSessions', []);
-    const [trainingAttendance, setTrainingAttendance] = usePersistentState<TrainingAttendance>('seguro-trainingAttendance', {});
-    const [chatMessages, setChatMessages] = usePersistentState<ChatMessage[]>('seguro-chatMessages', [
-      { sender: 'ai', text: 'Ciao! Sono il tuo assistente AI per la squadra. Come posso aiutarti oggi?' }
-    ]);
-
-    // --- LOCAL COMPONENT STATE ---
+    const [players, setPlayers] = useState<Player[]>([]);
     const [matches, setMatches] = useState<Match[]>([]);
+    const [matchStats, setMatchStats] = useState<MatchStats>({});
     const [sortConfig, setSortConfig] = useState<{ key: keyof PlayerStats | 'name'; direction: 'ascending' | 'descending' } | null>({ key: 'minutesPlayed', direction: 'descending' });
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userInput, setUserInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -207,7 +171,9 @@ const App = () => {
     const [playerView, setPlayerView] = useState<'grid' | 'list'>('grid');
 
     // Training Management State
+    const [trainingSessions, setTrainingSessions] = useState<TrainingSession[]>([]);
     const [newTraining, setNewTraining] = useState({ date: new Date().toISOString().split('T')[0], notes: '' });
+    const [trainingAttendance, setTrainingAttendance] = useState<TrainingAttendance>({});
     const [selectedTrainingId, setSelectedTrainingId] = useState<string | null>(null);
     const [selectedSummaryMonth, setSelectedSummaryMonth] = useState<string>('');
     const [trainingToDelete, setTrainingToDelete] = useState<string | null>(null);
@@ -229,6 +195,8 @@ const App = () => {
 
 
     useEffect(() => {
+        setPlayers([]);
+
         const processedMatches: Match[] = initialMatches.map((match, index) => {
             const isHomeGame = match.homeTeam === TEAM_NAME;
             return {
@@ -239,6 +207,22 @@ const App = () => {
             };
         });
         setMatches(processedMatches);
+        
+        setMatchStats({});
+        
+        const mockTrainings: TrainingSession[] = [
+            { id: 't1', date: '2024-10-23', notes: 'Tattica difensiva' },
+            { id: 't2', date: '2024-10-24', notes: 'Schemi su palla inattiva' },
+            { id: 't3', date: '2024-11-05', notes: 'Partitella' },
+        ];
+        setTrainingSessions(mockTrainings);
+        
+        const mockAttendance: TrainingAttendance = { 't1': {}, 't2': {}, 't3': {} };
+        setTrainingAttendance(mockAttendance);
+
+        setChatMessages([
+          { sender: 'ai', text: 'Ciao! Sono il tuo assistente AI per la squadra. Come posso aiutarti oggi?' }
+        ]);
     }, []);
     
     useEffect(() => {
