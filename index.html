@@ -36,12 +36,35 @@
     }
     
     .loading-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-size: 1.5rem;
-        color: var(--primary-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 70vh;
+      text-align: center;
+      padding: 2rem;
+      color: var(--primary-color);
+      background-color: var(--secondary-color);
+      border-radius: 8px;
+      margin-top: 2rem;
+    }
+
+    .loading-container h1 {
+        color: var(--absent-color);
+    }
+
+    .loading-container p {
+        max-width: 600px;
+        font-size: 1.1rem;
+        line-height: 1.7;
+    }
+
+    .loading-container code {
+        background-color: var(--background-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-family: monospace;
+        font-weight: bold;
     }
 
     header {

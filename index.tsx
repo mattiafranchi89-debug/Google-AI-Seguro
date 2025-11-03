@@ -63,9 +63,6 @@ type Widget = {
     height: string;
 };
 
-// --- INITIALIZATION ---
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // --- CONSTANTS ---
 const TEAM_NAME = "Seguro";
 const TEAM_LOGO_BASE64 = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -115,6 +112,35 @@ const ROLE_ORDER = ['Portiere', 'Terzino Sx', 'Terzino Dx', 'Dif.Centrale', 'Cen
 
 // --- APP COMPONENT ---
 const App = () => {
+    const apiKey = process.env.API_KEY;
+
+    // Initialize AI instance only if the key exists.
+    // useMemo ensures the instance is created only once.
+    const ai = useMemo(() => {
+        if (!apiKey) return null;
+        return new GoogleGenAI({ apiKey });
+    }, [apiKey]);
+    
+    // If the API key is not set, display a configuration message.
+    // This prevents the app from crashing and provides guidance to the user.
+    if (!apiKey) {
+        return (
+            <div className="container">
+                <header>
+                    <img src={TEAM_LOGO_BASE64} alt={`${TEAM_NAME} Logo`} />
+                    <h1>{TEAM_NAME} Manager</h1>
+                </header>
+                <div className="loading-container">
+                    <h1>Configurazione Mancante</h1>
+                    <p>
+                        La chiave API di Google AI non è stata configurata. Per favore, imposta la variabile d'ambiente 
+                        <code>API_KEY</code> nelle impostazioni del tuo progetto Vercel per poter utilizzare l'app.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+    
     const [activeTab, setActiveTab] = useState<ActiveTab>('Giocatori');
     const [players, setPlayers] = useState<Player[]>([]);
     const [matches, setMatches] = useState<Match[]>([]);
@@ -457,7 +483,7 @@ Calzettoni blu`.trim();
     // --- AI ASSISTANT HANDLER ---
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if (!userInput.trim() || loading) return;
+        if (!userInput.trim() || loading || !ai) return;
 
         const userMessage: ChatMessage = { sender: 'user', text: userInput };
         setChatMessages(prev => [...prev, userMessage, { sender: 'loading', text: '...' }]);
