@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
-import { GoogleGenAI } from "@google/genai";
 
 // --- TYPES ---
 type Player = {
@@ -49,14 +48,7 @@ type TrainingAttendance = {
     };
 };
 
-type ChatMessage = {
-    sender: 'user' | 'ai' | 'loading' | 'error';
-    text: string;
-    groundingLinks?: { uri?: string; title?: string; }[];
-};
-
-
-type ActiveTab = 'Giocatori' | 'Convocazioni' | 'Campionato' | 'Allenamenti' | 'Statistiche' | 'Assistente AI';
+type ActiveTab = 'Giocatori' | 'Convocazioni' | 'Campionato' | 'Allenamenti' | 'Statistiche';
 
 type Widget = {
     src: string;
@@ -112,14 +104,6 @@ const ROLE_ORDER = ['Portiere', 'Terzino Sx', 'Terzino Dx', 'Dif.Centrale', 'Cen
 
 // --- APP COMPONENT ---
 const App = () => {
-    const apiKey = process.env.API_KEY;
-
-    // Initialize AI instance only if the key exists.
-    // useMemo ensures the instance is created only once.
-    const ai = useMemo(() => {
-        if (!apiKey) return null;
-        return new GoogleGenAI({ apiKey });
-    }, [apiKey]);
     
     // --- STATE ---
     const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -135,33 +119,11 @@ const App = () => {
         }
     }, [isDarkMode]);
 
-    // If the API key is not set, display a configuration message.
-    if (!apiKey) {
-        return (
-            <div className="container">
-                <header>
-                    <img src={TEAM_LOGO_BASE64} alt={`${TEAM_NAME} Logo`} />
-                    <h1>{TEAM_NAME} Manager</h1>
-                </header>
-                <div className="loading-container">
-                    <h1>Configurazione Mancante</h1>
-                    <p>
-                        La chiave API di Google AI non è stata configurata. Per favore, imposta la variabile d'ambiente 
-                        <code>API_KEY</code> nelle impostazioni del tuo progetto Vercel per poter utilizzare l'app.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-    
     const [activeTab, setActiveTab] = useState<ActiveTab>('Giocatori');
     const [players, setPlayers] = useState<Player[]>([]);
     const [matches, setMatches] = useState<Match[]>([]);
     const [matchStats, setMatchStats] = useState<MatchStats>({});
     const [sortConfig, setSortConfig] = useState<{ key: keyof PlayerStats | 'name'; direction: 'ascending' | 'descending' } | null>({ key: 'minutesPlayed', direction: 'descending' });
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-    const [userInput, setUserInput] = useState('');
-    const [loading, setLoading] = useState(false);
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
@@ -219,10 +181,6 @@ const App = () => {
         
         const mockAttendance: TrainingAttendance = { 't1': {}, 't2': {}, 't3': {} };
         setTrainingAttendance(mockAttendance);
-
-        setChatMessages([
-          { sender: 'ai', text: 'Ciao! Sono il tuo assistente AI per la squadra. Come posso aiutarti oggi?' }
-        ]);
     }, []);
     
     useEffect(() => {
@@ -491,37 +449,6 @@ Calzettoni blu`.trim();
             setCopySuccess('Copiato!');
             setTimeout(() => setCopySuccess(''), 2000);
         }, () => setCopySuccess('Errore'));
-    };
-    
-    // --- AI ASSISTANT HANDLER ---
-    const handleSendMessage = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!userInput.trim() || loading || !ai) return;
-
-        const userMessage: ChatMessage = { sender: 'user', text: userInput };
-        setChatMessages(prev => [...prev, userMessage, { sender: 'loading', text: '...' }]);
-        setLoading(true);
-        setUserInput('');
-
-        try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: `Sei un assistente per la squadra di calcio "${TEAM_NAME}". Usa i dati forniti e la ricerca web per rispondere. Dati squadra: Giocatori: ${JSON.stringify(players)}. Partite: ${JSON.stringify(matches)}. Domanda: ${userInput}`,
-                 config: { tools: [{googleSearch: {}}] }
-            });
-
-            const aiText = response.text;
-            const groundingLinks = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(c => c.web).filter(w => w?.uri);
-            const aiMessage: ChatMessage = { sender: 'ai', text: aiText, groundingLinks: groundingLinks as any };
-            setChatMessages(prev => [...prev.slice(0, -1), aiMessage]);
-
-        } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            const errorMessage: ChatMessage = { sender: 'error', text: 'Oops! Qualcosa è andato storto. Riprova.' };
-            setChatMessages(prev => [...prev.slice(0, -1), errorMessage]);
-        } finally {
-            setLoading(false);
-        }
     };
     
     // --- STATS HANDLERS ---
@@ -1182,38 +1109,6 @@ Calzettoni blu`.trim();
                         )}
                     </div>
                 );
-            case 'Assistente AI':
-                return (
-                    <div className="ai-assistant">
-                        <div className="chat-history">
-                            {chatMessages.map((msg, index) => (
-                                <div key={index} className={`chat-message ${msg.sender}`}>
-                                    <p dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br />') }}></p>
-                                    {msg.groundingLinks && msg.groundingLinks.length > 0 && (
-                                        <div className="grounding-links">
-                                            <p>Fonti:</p>
-                                            {msg.groundingLinks.map((link, i) => (
-                                                <a key={i} href={link.uri} target="_blank" rel="noopener noreferrer">{link.title || link.uri}</a>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <form onSubmit={handleSendMessage} className="chat-input-form">
-                            <input
-                                type="text"
-                                value={userInput}
-                                onChange={(e) => setUserInput(e.target.value)}
-                                placeholder="Chiedi qualcosa alla squadra..."
-                                disabled={loading}
-                            />
-                            <button type="submit" disabled={loading}>
-                                {loading ? 'Pensando...' : 'Invia'}
-                            </button>
-                        </form>
-                    </div>
-                );
         }
     };
 
@@ -1248,7 +1143,6 @@ Calzettoni blu`.trim();
                 <button onClick={() => setActiveTab('Campionato')} className={activeTab === 'Campionato' ? 'active' : ''}>Campionato</button>
                 <button onClick={() => setActiveTab('Allenamenti')} className={activeTab === 'Allenamenti' ? 'active' : ''}>Allenamenti</button>
                 <button onClick={() => setActiveTab('Statistiche')} className={activeTab === 'Statistiche' ? 'active' : ''}>Statistiche</button>
-                <button onClick={() => setActiveTab('Assistente AI')} className={activeTab === 'Assistente AI' ? 'active' : ''}>Assistente AI</button>
             </nav>
             <main>
                 <div className="tab-content">
